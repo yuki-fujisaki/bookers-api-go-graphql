@@ -9,7 +9,18 @@ require (
 )
 
 require (
+	github.com/99designs/gqlgen v0.17.5-0.20220428154617-9250f9ac1f90 // indirect
+	github.com/agnivade/levenshtein v1.1.1 // indirect
+	github.com/vektah/gqlparser/v2 v2.4.3-0.20220508162109-d3d9eb001575 // indirect
+	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
+	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
+	golang.org/x/exp v0.0.0-20221230185412-738e83a70c30 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
+)
+
+require (
 	ariga.io/atlas v0.14.2 // indirect
+	entgo.io/contrib v0.4.5
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
