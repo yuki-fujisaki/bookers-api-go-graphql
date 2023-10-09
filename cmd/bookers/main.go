@@ -1,11 +1,14 @@
 package main
 
 import (
+	"bookers"
+	"bookers/ent"
 	"context"
 	"log"
+	"net/http"
 
-	"bookers-api-go-graphql/ent"
-
+	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/go-sql-driver/mysql"
 )
 
@@ -36,5 +39,14 @@ func main() {
 	if err := client.Schema.Create(context.Background()); err != nil {
 		log.Fatalf("failed creating schema resources: %v", err)
 	}
-	log.Println("connected")
+
+	srv := handler.NewDefaultServer(bookers.NewSchema(client))
+	http.Handle("/",
+		playground.Handler("Book", "/query"),
+	)
+	http.Handle("/query", srv)
+	log.Println("listening on :8081")
+	if err := http.ListenAndServe(":8081", nil); err != nil {
+		log.Fatal("http server terminated", err)
+	}
 }

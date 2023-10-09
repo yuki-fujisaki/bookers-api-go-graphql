@@ -4,8 +4,10 @@ FROM golang:latest
 WORKDIR /app
 COPY . .
 
-RUN go build -o main .
+# 生成したバイナリは /app ディレクトリに配置する
+RUN go build -o /app/main ./cmd/bookers
 
 EXPOSE 8080
 
-CMD ["./main"]
+# 実行コマンドのパスを修正
+CMD ["/app/main"]

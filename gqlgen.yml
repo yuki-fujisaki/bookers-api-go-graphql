@@ -9,7 +9,8 @@ resolver:
 # gqlgenは生成されたentパッケージ内のスキーマに含まれる型名を
 # 検索する。 一致すればそれを使い、そうでなければ新しいものを使う
 autobind:
-  - ./ent
+  - bookers/ent
+  - bookers/ent/book
 
 models:
   ID:
@@ -18,4 +19,4 @@ models:
   Node:
     model:
       # ent.Noderは、Nodeテンプレートが生成する新しいインターフェースである
-      - ./ent.Noder
+      - bookers/ent.Noder

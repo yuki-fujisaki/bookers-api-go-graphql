@@ -3,7 +3,7 @@
 package book
 
 import (
-	"bookers-api-go-graphql/ent/predicate"
+	"bookers/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
 )

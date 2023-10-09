@@ -1,7 +1,9 @@
 package schema
 
 import (
+	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
 )
 
@@ -21,4 +23,11 @@ func (Book) Fields() []ent.Field {
 // Edges of the Book.
 func (Book) Edges() []ent.Edge {
 	return nil
+}
+
+func (Book) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entgql.QueryField(),
+		entgql.Mutations(entgql.MutationCreate()),
+	}
 }

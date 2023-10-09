@@ -3,8 +3,8 @@
 package ent
 
 import (
-	"bookers-api-go-graphql/ent/book"
-	"bookers-api-go-graphql/ent/predicate"
+	"bookers/ent/book"
+	"bookers/ent/predicate"
 	"context"
 	"errors"
 	"fmt"

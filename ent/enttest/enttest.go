@@ -3,12 +3,12 @@
 package enttest
 
 import (
-	"bookers-api-go-graphql/ent"
+	"bookers/ent"
 	"context"
 	// required by schema hooks.
-	_ "bookers-api-go-graphql/ent/runtime"
+	_ "bookers/ent/runtime"
 
-	"bookers-api-go-graphql/ent/migrate"
+	"bookers/ent/migrate"
 
 	"entgo.io/ent/dialect/sql/schema"
 )

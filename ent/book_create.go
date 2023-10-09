@@ -3,7 +3,7 @@
 package ent
 
 import (
-	"bookers-api-go-graphql/ent/book"
+	"bookers/ent/book"
 	"context"
 	"errors"
 	"fmt"

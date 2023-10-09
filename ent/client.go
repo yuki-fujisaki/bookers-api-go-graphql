@@ -9,9 +9,9 @@ import (
 	"log"
 	"reflect"
 
-	"bookers-api-go-graphql/ent/migrate"
+	"bookers/ent/migrate"
 
-	"bookers-api-go-graphql/ent/book"
+	"bookers/ent/book"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"

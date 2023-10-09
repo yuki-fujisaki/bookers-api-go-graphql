@@ -3,7 +3,7 @@
 package hook
 
 import (
-	"bookers-api-go-graphql/ent"
+	"bookers/ent"
 	"context"
 	"fmt"
 )

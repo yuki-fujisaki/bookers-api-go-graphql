@@ -3,8 +3,8 @@
 package ent
 
 import (
-	"bookers-api-go-graphql/ent/book"
-	"bookers-api-go-graphql/ent/schema"
+	"bookers/ent/book"
+	"bookers/ent/schema"
 )
 
 // The init function reads all schema descriptors with runtime code
