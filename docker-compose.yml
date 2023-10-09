@@ -1,6 +1,6 @@
 version: "3"
 services:
-  bookers-api-go:
+  bookers-api-go-graphql:
     container_name: bookers-api-go-graphql
     build:
       context: .
