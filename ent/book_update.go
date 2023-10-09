@@ -5,6 +5,7 @@ package ent
 import (
 	"bookers/ent/book"
 	"bookers/ent/predicate"
+	"bookers/ent/user"
 	"context"
 	"errors"
 	"fmt"
@@ -53,9 +54,34 @@ func (bu *BookUpdate) ClearBody() *BookUpdate {
 	return bu
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (bu *BookUpdate) SetUserID(id int) *BookUpdate {
+	bu.mutation.SetUserID(id)
+	return bu
+}
+
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (bu *BookUpdate) SetNillableUserID(id *int) *BookUpdate {
+	if id != nil {
+		bu = bu.SetUserID(*id)
+	}
+	return bu
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (bu *BookUpdate) SetUser(u *User) *BookUpdate {
+	return bu.SetUserID(u.ID)
+}
+
 // Mutation returns the BookMutation object of the builder.
 func (bu *BookUpdate) Mutation() *BookMutation {
 	return bu.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (bu *BookUpdate) ClearUser() *BookUpdate {
+	bu.mutation.ClearUser()
+	return bu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -116,6 +142,35 @@ func (bu *BookUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if bu.mutation.BodyCleared() {
 		_spec.ClearField(book.FieldBody, field.TypeString)
 	}
+	if bu.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   book.UserTable,
+			Columns: []string{book.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := bu.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   book.UserTable,
+			Columns: []string{book.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, bu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{book.Label}
@@ -162,9 +217,34 @@ func (buo *BookUpdateOne) ClearBody() *BookUpdateOne {
 	return buo
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (buo *BookUpdateOne) SetUserID(id int) *BookUpdateOne {
+	buo.mutation.SetUserID(id)
+	return buo
+}
+
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (buo *BookUpdateOne) SetNillableUserID(id *int) *BookUpdateOne {
+	if id != nil {
+		buo = buo.SetUserID(*id)
+	}
+	return buo
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (buo *BookUpdateOne) SetUser(u *User) *BookUpdateOne {
+	return buo.SetUserID(u.ID)
+}
+
 // Mutation returns the BookMutation object of the builder.
 func (buo *BookUpdateOne) Mutation() *BookMutation {
 	return buo.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (buo *BookUpdateOne) ClearUser() *BookUpdateOne {
+	buo.mutation.ClearUser()
+	return buo
 }
 
 // Where appends a list predicates to the BookUpdate builder.
@@ -254,6 +334,35 @@ func (buo *BookUpdateOne) sqlSave(ctx context.Context) (_node *Book, err error) 
 	}
 	if buo.mutation.BodyCleared() {
 		_spec.ClearField(book.FieldBody, field.TypeString)
+	}
+	if buo.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   book.UserTable,
+			Columns: []string{book.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := buo.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   book.UserTable,
+			Columns: []string{book.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Book{config: buo.config}
 	_spec.Assign = _node.assignValues

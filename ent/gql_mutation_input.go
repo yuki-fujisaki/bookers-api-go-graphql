@@ -11,6 +11,7 @@ type CreateBookInput struct {
 	Title     string
 	Body      *string
 	CreatedAt *time.Time
+	UserID    *int
 }
 
 // Mutate applies the CreateBookInput on the BookMutation builder.
@@ -22,10 +23,47 @@ func (i *CreateBookInput) Mutate(m *BookMutation) {
 	if v := i.CreatedAt; v != nil {
 		m.SetCreatedAt(*v)
 	}
+	if v := i.UserID; v != nil {
+		m.SetUserID(*v)
+	}
 }
 
 // SetInput applies the change-set in the CreateBookInput on the BookCreate builder.
 func (c *BookCreate) SetInput(i CreateBookInput) *BookCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreateUserInput represents a mutation input for creating users.
+type CreateUserInput struct {
+	Name         string
+	Introduction *string
+	Email        string
+	CreatedAt    *time.Time
+	UpdatedAt    *time.Time
+	BookIDs      []int
+}
+
+// Mutate applies the CreateUserInput on the UserMutation builder.
+func (i *CreateUserInput) Mutate(m *UserMutation) {
+	m.SetName(i.Name)
+	if v := i.Introduction; v != nil {
+		m.SetIntroduction(*v)
+	}
+	m.SetEmail(i.Email)
+	if v := i.CreatedAt; v != nil {
+		m.SetCreatedAt(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if v := i.BookIDs; len(v) > 0 {
+		m.AddBookIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the CreateUserInput on the UserCreate builder.
+func (c *UserCreate) SetInput(i CreateUserInput) *UserCreate {
 	i.Mutate(c.Mutation())
 	return c
 }

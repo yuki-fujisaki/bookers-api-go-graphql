@@ -4,6 +4,7 @@ package ent
 
 import (
 	"bookers/ent/book"
+	"bookers/ent/user"
 	"context"
 
 	"entgo.io/ent/dialect/sql"
@@ -31,6 +32,16 @@ func (b *BookQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 	)
 	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
+		case "user":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&UserClient{config: b.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, userImplementors)...); err != nil {
+				return err
+			}
+			b.withUser = query
 		case "title":
 			if _, ok := fieldSeen[book.FieldTitle]; !ok {
 				selectedFields = append(selectedFields, book.FieldTitle)
@@ -66,6 +77,102 @@ type bookPaginateArgs struct {
 
 func newBookPaginateArgs(rv map[string]any) *bookPaginateArgs {
 	args := &bookPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (u *UserQuery) CollectFields(ctx context.Context, satisfies ...string) (*UserQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return u, nil
+	}
+	if err := u.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return u, nil
+}
+
+func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(user.Columns))
+		selectedFields = []string{user.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "books":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&BookClient{config: u.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, bookImplementors)...); err != nil {
+				return err
+			}
+			u.WithNamedBooks(alias, func(wq *BookQuery) {
+				*wq = *query
+			})
+		case "name":
+			if _, ok := fieldSeen[user.FieldName]; !ok {
+				selectedFields = append(selectedFields, user.FieldName)
+				fieldSeen[user.FieldName] = struct{}{}
+			}
+		case "introduction":
+			if _, ok := fieldSeen[user.FieldIntroduction]; !ok {
+				selectedFields = append(selectedFields, user.FieldIntroduction)
+				fieldSeen[user.FieldIntroduction] = struct{}{}
+			}
+		case "email":
+			if _, ok := fieldSeen[user.FieldEmail]; !ok {
+				selectedFields = append(selectedFields, user.FieldEmail)
+				fieldSeen[user.FieldEmail] = struct{}{}
+			}
+		case "createdAt":
+			if _, ok := fieldSeen[user.FieldCreatedAt]; !ok {
+				selectedFields = append(selectedFields, user.FieldCreatedAt)
+				fieldSeen[user.FieldCreatedAt] = struct{}{}
+			}
+		case "updatedAt":
+			if _, ok := fieldSeen[user.FieldUpdatedAt]; !ok {
+				selectedFields = append(selectedFields, user.FieldUpdatedAt)
+				fieldSeen[user.FieldUpdatedAt] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		u.Select(selectedFields...)
+	}
+	return nil
+}
+
+type userPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []UserPaginateOption
+}
+
+func newUserPaginateArgs(rv map[string]any) *userPaginateArgs {
+	args := &userPaginateArgs{}
 	if rv == nil {
 		return args
 	}
