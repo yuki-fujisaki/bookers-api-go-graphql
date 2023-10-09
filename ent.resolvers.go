@@ -27,7 +27,7 @@ func (r *queryResolver) Books(ctx context.Context) ([]*ent.Book, error) {
 
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context) ([]*ent.User, error) {
-	panic(fmt.Errorf("not implemented: Users - users"))
+	return r.client.User.Query().All(ctx)
 }
 
 // Query returns QueryResolver implementation.
