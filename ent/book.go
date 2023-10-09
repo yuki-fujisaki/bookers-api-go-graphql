@@ -4,6 +4,7 @@ package ent
 
 import (
 	"bookers/ent/book"
+	"bookers/ent/user"
 	"fmt"
 	"strings"
 	"time"
@@ -22,8 +23,36 @@ type Book struct {
 	// Body holds the value of the "body" field.
 	Body string `json:"body,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
-	CreatedAt    time.Time `json:"created_at,omitempty"`
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the BookQuery when eager-loading is set.
+	Edges        BookEdges `json:"edges"`
+	user_books   *int
 	selectValues sql.SelectValues
+}
+
+// BookEdges holds the relations/edges for other nodes in the graph.
+type BookEdges struct {
+	// User holds the value of the user edge.
+	User *User `json:"user,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+	// totalCount holds the count of the edges above.
+	totalCount [1]map[string]int
+}
+
+// UserOrErr returns the User value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e BookEdges) UserOrErr() (*User, error) {
+	if e.loadedTypes[0] {
+		if e.User == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.User, nil
+	}
+	return nil, &NotLoadedError{edge: "user"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -37,6 +66,8 @@ func (*Book) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case book.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
+		case book.ForeignKeys[0]: // user_books
+			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -76,6 +107,13 @@ func (b *Book) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				b.CreatedAt = value.Time
 			}
+		case book.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field user_books", value)
+			} else if value.Valid {
+				b.user_books = new(int)
+				*b.user_books = int(value.Int64)
+			}
 		default:
 			b.selectValues.Set(columns[i], values[i])
 		}
@@ -87,6 +125,11 @@ func (b *Book) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (b *Book) Value(name string) (ent.Value, error) {
 	return b.selectValues.Get(name)
+}
+
+// QueryUser queries the "user" edge of the Book entity.
+func (b *Book) QueryUser() *UserQuery {
+	return NewBookClient(b.config).QueryUser(b)
 }
 
 // Update returns a builder for updating this Book.
