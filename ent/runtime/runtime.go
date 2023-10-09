@@ -2,7 +2,7 @@
 
 package runtime
 
-// The schema-stitching logic is generated in bookers/ent/runtime.go
+// The schema-stitching logic is generated in todo/ent/runtime.go
 
 const (
 	Version = "v0.12.4"                                         // Version of ent codegen.

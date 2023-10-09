@@ -9,13 +9,14 @@ import (
 	"log"
 	"reflect"
 
-	"bookers/ent/migrate"
+	"todo/ent/migrate"
 
-	"bookers/ent/book"
+	"todo/ent/todo"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // Client is the client that holds all ent builders.
@@ -23,8 +24,10 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
-	// Book is the client for interacting with the Book builders.
-	Book *BookClient
+	// Todo is the client for interacting with the Todo builders.
+	Todo *TodoClient
+	// additional fields for node api
+	tables tables
 }
 
 // NewClient creates a new client configured with the given options.
@@ -38,7 +41,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
-	c.Book = NewBookClient(c.config)
+	c.Todo = NewTodoClient(c.config)
 }
 
 type (
@@ -124,7 +127,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:    ctx,
 		config: cfg,
-		Book:   NewBookClient(cfg),
+		Todo:   NewTodoClient(cfg),
 	}, nil
 }
 
@@ -144,14 +147,14 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:    ctx,
 		config: cfg,
-		Book:   NewBookClient(cfg),
+		Todo:   NewTodoClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Book.
+//		Todo.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -173,126 +176,126 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.Book.Use(hooks...)
+	c.Todo.Use(hooks...)
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.Book.Intercept(interceptors...)
+	c.Todo.Intercept(interceptors...)
 }
 
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
-	case *BookMutation:
-		return c.Book.mutate(ctx, m)
+	case *TodoMutation:
+		return c.Todo.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
 }
 
-// BookClient is a client for the Book schema.
-type BookClient struct {
+// TodoClient is a client for the Todo schema.
+type TodoClient struct {
 	config
 }
 
-// NewBookClient returns a client for the Book from the given config.
-func NewBookClient(c config) *BookClient {
-	return &BookClient{config: c}
+// NewTodoClient returns a client for the Todo from the given config.
+func NewTodoClient(c config) *TodoClient {
+	return &TodoClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `book.Hooks(f(g(h())))`.
-func (c *BookClient) Use(hooks ...Hook) {
-	c.hooks.Book = append(c.hooks.Book, hooks...)
+// A call to `Use(f, g, h)` equals to `todo.Hooks(f(g(h())))`.
+func (c *TodoClient) Use(hooks ...Hook) {
+	c.hooks.Todo = append(c.hooks.Todo, hooks...)
 }
 
 // Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `book.Intercept(f(g(h())))`.
-func (c *BookClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Book = append(c.inters.Book, interceptors...)
+// A call to `Intercept(f, g, h)` equals to `todo.Intercept(f(g(h())))`.
+func (c *TodoClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Todo = append(c.inters.Todo, interceptors...)
 }
 
-// Create returns a builder for creating a Book entity.
-func (c *BookClient) Create() *BookCreate {
-	mutation := newBookMutation(c.config, OpCreate)
-	return &BookCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a Todo entity.
+func (c *TodoClient) Create() *TodoCreate {
+	mutation := newTodoMutation(c.config, OpCreate)
+	return &TodoCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of Book entities.
-func (c *BookClient) CreateBulk(builders ...*BookCreate) *BookCreateBulk {
-	return &BookCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of Todo entities.
+func (c *TodoClient) CreateBulk(builders ...*TodoCreate) *TodoCreateBulk {
+	return &TodoCreateBulk{config: c.config, builders: builders}
 }
 
 // MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
 // a builder and applies setFunc on it.
-func (c *BookClient) MapCreateBulk(slice any, setFunc func(*BookCreate, int)) *BookCreateBulk {
+func (c *TodoClient) MapCreateBulk(slice any, setFunc func(*TodoCreate, int)) *TodoCreateBulk {
 	rv := reflect.ValueOf(slice)
 	if rv.Kind() != reflect.Slice {
-		return &BookCreateBulk{err: fmt.Errorf("calling to BookClient.MapCreateBulk with wrong type %T, need slice", slice)}
+		return &TodoCreateBulk{err: fmt.Errorf("calling to TodoClient.MapCreateBulk with wrong type %T, need slice", slice)}
 	}
-	builders := make([]*BookCreate, rv.Len())
+	builders := make([]*TodoCreate, rv.Len())
 	for i := 0; i < rv.Len(); i++ {
 		builders[i] = c.Create()
 		setFunc(builders[i], i)
 	}
-	return &BookCreateBulk{config: c.config, builders: builders}
+	return &TodoCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for Book.
-func (c *BookClient) Update() *BookUpdate {
-	mutation := newBookMutation(c.config, OpUpdate)
-	return &BookUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for Todo.
+func (c *TodoClient) Update() *TodoUpdate {
+	mutation := newTodoMutation(c.config, OpUpdate)
+	return &TodoUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *BookClient) UpdateOne(b *Book) *BookUpdateOne {
-	mutation := newBookMutation(c.config, OpUpdateOne, withBook(b))
-	return &BookUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *TodoClient) UpdateOne(t *Todo) *TodoUpdateOne {
+	mutation := newTodoMutation(c.config, OpUpdateOne, withTodo(t))
+	return &TodoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *BookClient) UpdateOneID(id int) *BookUpdateOne {
-	mutation := newBookMutation(c.config, OpUpdateOne, withBookID(id))
-	return &BookUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *TodoClient) UpdateOneID(id int) *TodoUpdateOne {
+	mutation := newTodoMutation(c.config, OpUpdateOne, withTodoID(id))
+	return &TodoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for Book.
-func (c *BookClient) Delete() *BookDelete {
-	mutation := newBookMutation(c.config, OpDelete)
-	return &BookDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for Todo.
+func (c *TodoClient) Delete() *TodoDelete {
+	mutation := newTodoMutation(c.config, OpDelete)
+	return &TodoDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *BookClient) DeleteOne(b *Book) *BookDeleteOne {
-	return c.DeleteOneID(b.ID)
+func (c *TodoClient) DeleteOne(t *Todo) *TodoDeleteOne {
+	return c.DeleteOneID(t.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *BookClient) DeleteOneID(id int) *BookDeleteOne {
-	builder := c.Delete().Where(book.ID(id))
+func (c *TodoClient) DeleteOneID(id int) *TodoDeleteOne {
+	builder := c.Delete().Where(todo.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &BookDeleteOne{builder}
+	return &TodoDeleteOne{builder}
 }
 
-// Query returns a query builder for Book.
-func (c *BookClient) Query() *BookQuery {
-	return &BookQuery{
+// Query returns a query builder for Todo.
+func (c *TodoClient) Query() *TodoQuery {
+	return &TodoQuery{
 		config: c.config,
-		ctx:    &QueryContext{Type: TypeBook},
+		ctx:    &QueryContext{Type: TypeTodo},
 		inters: c.Interceptors(),
 	}
 }
 
-// Get returns a Book entity by its id.
-func (c *BookClient) Get(ctx context.Context, id int) (*Book, error) {
-	return c.Query().Where(book.ID(id)).Only(ctx)
+// Get returns a Todo entity by its id.
+func (c *TodoClient) Get(ctx context.Context, id int) (*Todo, error) {
+	return c.Query().Where(todo.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *BookClient) GetX(ctx context.Context, id int) *Book {
+func (c *TodoClient) GetX(ctx context.Context, id int) *Todo {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -300,37 +303,69 @@ func (c *BookClient) GetX(ctx context.Context, id int) *Book {
 	return obj
 }
 
+// QueryChildren queries the children edge of a Todo.
+func (c *TodoClient) QueryChildren(t *Todo) *TodoQuery {
+	query := (&TodoClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(todo.Table, todo.FieldID, id),
+			sqlgraph.To(todo.Table, todo.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, todo.ChildrenTable, todo.ChildrenColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryParent queries the parent edge of a Todo.
+func (c *TodoClient) QueryParent(t *Todo) *TodoQuery {
+	query := (&TodoClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(todo.Table, todo.FieldID, id),
+			sqlgraph.To(todo.Table, todo.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, todo.ParentTable, todo.ParentColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
-func (c *BookClient) Hooks() []Hook {
-	return c.hooks.Book
+func (c *TodoClient) Hooks() []Hook {
+	return c.hooks.Todo
 }
 
 // Interceptors returns the client interceptors.
-func (c *BookClient) Interceptors() []Interceptor {
-	return c.inters.Book
+func (c *TodoClient) Interceptors() []Interceptor {
+	return c.inters.Todo
 }
 
-func (c *BookClient) mutate(ctx context.Context, m *BookMutation) (Value, error) {
+func (c *TodoClient) mutate(ctx context.Context, m *TodoMutation) (Value, error) {
 	switch m.Op() {
 	case OpCreate:
-		return (&BookCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&TodoCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdate:
-		return (&BookUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&TodoUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdateOne:
-		return (&BookUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&TodoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpDelete, OpDeleteOne:
-		return (&BookDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+		return (&TodoDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
-		return nil, fmt.Errorf("ent: unknown Book mutation op: %q", m.Op())
+		return nil, fmt.Errorf("ent: unknown Todo mutation op: %q", m.Op())
 	}
 }
 
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Book []ent.Hook
+		Todo []ent.Hook
 	}
 	inters struct {
-		Book []ent.Interceptor
+		Todo []ent.Interceptor
 	}
 )

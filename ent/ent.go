@@ -3,12 +3,12 @@
 package ent
 
 import (
-	"bookers/ent/book"
 	"context"
 	"errors"
 	"fmt"
 	"reflect"
 	"sync"
+	"todo/ent/todo"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -73,7 +73,7 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			book.Table: book.ValidColumn,
+			todo.Table: todo.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

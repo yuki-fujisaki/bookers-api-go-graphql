@@ -3,22 +3,27 @@
 package ent
 
 import (
-	"bookers/ent/book"
-	"bookers/ent/schema"
+	"time"
+	"todo/ent/schema"
+	"todo/ent/todo"
 )
 
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
-	bookFields := schema.Book{}.Fields()
-	_ = bookFields
-	// bookDescTitle is the schema descriptor for title field.
-	bookDescTitle := bookFields[0].Descriptor()
-	// book.TitleValidator is a validator for the "title" field. It is called by the builders before save.
-	book.TitleValidator = bookDescTitle.Validators[0].(func(string) error)
-	// bookDescBody is the schema descriptor for body field.
-	bookDescBody := bookFields[1].Descriptor()
-	// book.BodyValidator is a validator for the "body" field. It is called by the builders before save.
-	book.BodyValidator = bookDescBody.Validators[0].(func(string) error)
+	todoFields := schema.Todo{}.Fields()
+	_ = todoFields
+	// todoDescText is the schema descriptor for text field.
+	todoDescText := todoFields[0].Descriptor()
+	// todo.TextValidator is a validator for the "text" field. It is called by the builders before save.
+	todo.TextValidator = todoDescText.Validators[0].(func(string) error)
+	// todoDescCreatedAt is the schema descriptor for created_at field.
+	todoDescCreatedAt := todoFields[1].Descriptor()
+	// todo.DefaultCreatedAt holds the default value on creation for the created_at field.
+	todo.DefaultCreatedAt = todoDescCreatedAt.Default.(func() time.Time)
+	// todoDescPriority is the schema descriptor for priority field.
+	todoDescPriority := todoFields[3].Descriptor()
+	// todo.DefaultPriority holds the default value on creation for the priority field.
+	todo.DefaultPriority = todoDescPriority.Default.(int)
 }

@@ -3,21 +3,21 @@
 package hook
 
 import (
-	"bookers/ent"
 	"context"
 	"fmt"
+	"todo/ent"
 )
 
-// The BookFunc type is an adapter to allow the use of ordinary
-// function as Book mutator.
-type BookFunc func(context.Context, *ent.BookMutation) (ent.Value, error)
+// The TodoFunc type is an adapter to allow the use of ordinary
+// function as Todo mutator.
+type TodoFunc func(context.Context, *ent.TodoMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f BookFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.BookMutation); ok {
+func (f TodoFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.TodoMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.BookMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TodoMutation", m)
 }
 
 // Condition is a hook condition function.

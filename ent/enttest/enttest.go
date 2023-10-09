@@ -3,12 +3,12 @@
 package enttest
 
 import (
-	"bookers/ent"
 	"context"
+	"todo/ent"
 	// required by schema hooks.
-	_ "bookers/ent/runtime"
+	_ "todo/ent/runtime"
 
-	"bookers/ent/migrate"
+	"todo/ent/migrate"
 
 	"entgo.io/ent/dialect/sql/schema"
 )

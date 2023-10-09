@@ -8,23 +8,35 @@ import (
 )
 
 var (
-	// BooksColumns holds the columns for the "books" table.
-	BooksColumns = []*schema.Column{
+	// TodosColumns holds the columns for the "todos" table.
+	TodosColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "title", Type: field.TypeString},
-		{Name: "body", Type: field.TypeString},
+		{Name: "text", Type: field.TypeString, Size: 2147483647},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"IN_PROGRESS", "COMPLETED"}, Default: "IN_PROGRESS"},
+		{Name: "priority", Type: field.TypeInt, Default: 0},
+		{Name: "todo_parent", Type: field.TypeInt, Nullable: true},
 	}
-	// BooksTable holds the schema information for the "books" table.
-	BooksTable = &schema.Table{
-		Name:       "books",
-		Columns:    BooksColumns,
-		PrimaryKey: []*schema.Column{BooksColumns[0]},
+	// TodosTable holds the schema information for the "todos" table.
+	TodosTable = &schema.Table{
+		Name:       "todos",
+		Columns:    TodosColumns,
+		PrimaryKey: []*schema.Column{TodosColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "todos_todos_parent",
+				Columns:    []*schema.Column{TodosColumns[5]},
+				RefColumns: []*schema.Column{TodosColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		BooksTable,
+		TodosTable,
 	}
 )
 
 func init() {
+	TodosTable.ForeignKeys[0].RefTable = TodosTable
 }
