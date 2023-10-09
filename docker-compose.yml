@@ -1,0 +1,20 @@
+version: "3"
+services:
+  bookers-api-go:
+    container_name: bookers-api-go-graphql
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    depends_on:
+      - bookers-db-mysql
+  bookers-db-mysql:
+    image: mysql:5.7
+    platform: linux/amd64
+    container_name: bookers-db-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: bookers-db-mysql
+    ports:
+      - "34444:3306"
